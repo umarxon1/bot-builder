@@ -2,6 +2,7 @@ import { z } from "zod";
 import { timingSafeEqual } from "crypto";
 
 import { logger } from "@/lib/logger";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { hashText } from "@/lib/security/encryption";
 import { processTelegramUpdate } from "@/lib/telegram/engine";
 import { getBotTokenForWebhook } from "@/server/repositories/bots";
@@ -28,6 +29,7 @@ export async function POST(
   context: { params: Promise<{ botId: string }> },
 ) {
   const { botId } = await context.params;
+  const admin = createAdminSupabaseClient();
   const secretHeader = request.headers.get("x-telegram-bot-api-secret-token");
 
   if (!secretHeader) {
@@ -58,11 +60,29 @@ export async function POST(
       update: parsed.data,
     });
 
+    await admin
+      .from("bot_connections")
+      .update({
+        last_webhook_at: new Date().toISOString(),
+        last_error: null,
+      })
+      .eq("bot_id", botId);
+
     return Response.json({ ok: true });
   } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+
+    await admin
+      .from("bot_connections")
+      .update({
+        last_error: message,
+        last_webhook_at: new Date().toISOString(),
+      })
+      .eq("bot_id", botId);
+
     logger.error("telegram.webhook_failed", {
       botId,
-      message: error instanceof Error ? error.message : "Unknown error",
+      message,
     });
 
     return new Response("Webhook processing failed", { status: 500 });

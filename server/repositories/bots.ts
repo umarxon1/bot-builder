@@ -141,7 +141,10 @@ export async function activateBotWebhook(input: {
 
   const token = decryptText(connection.encrypted_token);
   const secretToken = randomBytes(24).toString("hex");
-  const webhookUrl = `${env.TELEGRAM_WEBHOOK_BASE_URL}/api/bot/webhook/${input.botId}`;
+  const webhookUrl = new URL(
+    `/api/bot/webhook/${input.botId}`,
+    env.TELEGRAM_WEBHOOK_BASE_URL,
+  ).toString();
 
   await setTelegramWebhook({
     token,

@@ -1,7 +1,6 @@
 import "server-only";
 
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
   parseNodeConfig,
   type BuilderViewModel,
@@ -79,17 +78,17 @@ export async function ensureDraftFlow(
 }
 
 export async function getBuilderData(workspaceId: string, botId: string) {
-  const supabase = await createServerSupabaseClient();
+  const admin = createAdminSupabaseClient();
   const flow = await ensureDraftFlow(workspaceId, botId);
-  const { data: nodesData } = await supabase
+  const { data: nodesData } = await admin
     .from("flow_nodes")
-    .select("*, buttons:flow_buttons(*)")
+    .select("*, buttons:flow_buttons!flow_buttons_node_id_fkey(*)")
     .eq("workspace_id", workspaceId)
     .eq("flow_id", flow.id)
     .order("order_index", { ascending: true });
   const nodes = (nodesData ?? []) as unknown as NodeWithButtons[];
 
-  const { data: botData } = await supabase
+  const { data: botData } = await admin
     .from("bots")
     .select("published_flow_id")
     .eq("id", botId)
@@ -109,8 +108,8 @@ export async function getBuilderData(workspaceId: string, botId: string) {
 }
 
 export async function getNodeOptions(workspaceId: string, flowId: string) {
-  const supabase = await createServerSupabaseClient();
-  const { data } = await supabase
+  const admin = createAdminSupabaseClient();
+  const { data } = await admin
     .from("flow_nodes")
     .select("id, title, type, is_start")
     .eq("workspace_id", workspaceId)
@@ -262,6 +261,22 @@ export async function upsertButtonRecord(input: {
     url: input.kind === "url" ? input.url ?? null : null,
     order_index: (latestButton?.[0]?.order_index ?? -1) + 1,
   });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function deleteButtonRecord(input: {
+  workspaceId: string;
+  buttonId: string;
+}) {
+  const admin = createAdminSupabaseClient();
+  const { error } = await admin
+    .from("flow_buttons")
+    .delete()
+    .eq("id", input.buttonId)
+    .eq("workspace_id", input.workspaceId);
 
   if (error) {
     throw new Error(error.message);

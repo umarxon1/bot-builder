@@ -5,7 +5,11 @@ import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { saveButtonAction, updateNodeAction } from "@/server/actions/builder";
+import {
+  deleteButtonAction,
+  saveButtonAction,
+  updateNodeAction,
+} from "@/server/actions/builder";
 import type { ButtonInput, UpdateNodeInput } from "@/lib/validations/builder";
 import type { FlowNodeWithButtons } from "@/types/app";
 import { Badge } from "@/components/ui/badge";
@@ -21,10 +25,11 @@ function ButtonCreateForm({
   nodeOptions,
 }: {
   nodeId: string;
-  nodeOptions: Array<{ id: string; title: string }>;
+  nodeOptions: Array<{ id: string; title: string; label?: string }>;
 }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const availableNodeOptions = nodeOptions.filter((option) => option.id !== nodeId);
   const { register, handleSubmit, watch, reset } = useForm<ButtonInput>({
     defaultValues: {
       nodeId,
@@ -72,9 +77,9 @@ function ButtonCreateForm({
           <Label>Target node</Label>
           <Select {...register("targetNodeId")}>
             <option value="">Tanlang</option>
-            {nodeOptions.map((option) => (
+            {availableNodeOptions.map((option) => (
               <option key={option.id} value={option.id}>
-                {option.title}
+                {option.label ?? option.title}
               </option>
             ))}
           </Select>
@@ -99,7 +104,7 @@ export function NodeCard({
 }: {
   node: FlowNodeWithButtons;
   flowId: string;
-  nodeOptions: Array<{ id: string; title: string }>;
+  nodeOptions: Array<{ id: string; title: string; label?: string }>;
 }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -139,6 +144,20 @@ export function NodeCard({
       router.refresh();
     });
   });
+
+  const handleDeleteButton = (buttonId: string) => {
+    startTransition(async () => {
+      const result = await deleteButtonAction({ buttonId });
+
+      if (!result?.success) {
+        toast.error(result?.error ?? "Button o'chirilmadi.");
+        return;
+      }
+
+      toast.success(result.message ?? "Button o'chirildi.");
+      router.refresh();
+    });
+  };
 
   return (
     <Card className="p-6">
@@ -230,14 +249,25 @@ export function NodeCard({
             node.buttons.map((button) => (
               <div
                 key={button.id}
-                className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700"
               >
-                <span className="font-medium">{button.label}</span>
-                <span className="ml-2 text-slate-500">
-                  {button.kind === "navigate"
-                    ? `-> ${nodeOptions.find((option) => option.id === button.target_node_id)?.title ?? "target yo'q"}`
-                    : button.url}
-                </span>
+                <div>
+                  <span className="font-medium">{button.label}</span>
+                  <span className="ml-2 text-slate-500">
+                    {button.kind === "navigate"
+                      ? `-> ${nodeOptions.find((option) => option.id === button.target_node_id)?.label ?? "target yo'q"}`
+                      : button.url}
+                  </span>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={isPending}
+                  onClick={() => handleDeleteButton(button.id)}
+                >
+                  {"O'chirish"}
+                </Button>
               </div>
             ))
           ) : (

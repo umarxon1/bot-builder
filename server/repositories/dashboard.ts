@@ -149,7 +149,7 @@ export async function getBuilderPreview(workspaceId: string) {
 
   const { data: nodesData } = await supabase
     .from("flow_nodes")
-    .select("*, buttons:flow_buttons(*)")
+    .select("*, buttons:flow_buttons!flow_buttons_node_id_fkey(*)")
     .eq("workspace_id", workspaceId)
     .eq("flow_id", bot.published_flow_id === null ? "" : bot.published_flow_id)
     .order("order_index", { ascending: true });

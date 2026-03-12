@@ -35,6 +35,10 @@ export const buttonSchema = z.object({
   url: optionalUrl,
 });
 
+export const deleteButtonSchema = z.object({
+  buttonId: z.string().uuid(),
+});
+
 export const publishFlowSchema = z.object({
   flowId: z.string().uuid(),
   botId: z.string().uuid(),
@@ -43,4 +47,5 @@ export const publishFlowSchema = z.object({
 export type CreateNodeInput = z.infer<typeof createNodeSchema>;
 export type UpdateNodeInput = z.infer<typeof updateNodeSchema>;
 export type ButtonInput = z.infer<typeof buttonSchema>;
+export type DeleteButtonInput = z.infer<typeof deleteButtonSchema>;
 export type PublishFlowInput = z.infer<typeof publishFlowSchema>;

@@ -19,7 +19,7 @@ export function CreateNodeForm({
   nodeOptions,
 }: {
   flowId: string;
-  nodeOptions: Array<{ id: string; title: string }>;
+  nodeOptions: Array<{ id: string; title: string; label?: string }>;
 }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -111,11 +111,11 @@ export function CreateNodeForm({
             <Select id="nextNodeId" {...register("nextNodeId")}>
               <option value="">Tanlanmagan</option>
               {nodeOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.title}
-                </option>
-              ))}
-            </Select>
+              <option key={option.id} value={option.id}>
+                {option.label ?? option.title}
+              </option>
+            ))}
+          </Select>
           </div>
         ) : null}
         {nodeType === "lead_capture" || nodeType === "order_form" ? (

@@ -6,6 +6,7 @@ import { actionError, actionSuccess, type ActionResult } from "@/server/actions/
 import {
   buttonSchema,
   createNodeSchema,
+  deleteButtonSchema,
   publishFlowSchema,
   updateNodeSchema,
 } from "@/lib/validations/builder";
@@ -13,6 +14,7 @@ import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { requireWorkspaceContext } from "@/server/repositories/context";
 import {
   createNodeRecord,
+  deleteButtonRecord,
   updateNodeRecord,
   upsertButtonRecord,
 } from "@/server/repositories/builder";
@@ -112,6 +114,14 @@ export async function saveButtonAction(
     return actionError("Navigatsiya uchun target node tanlang.");
   }
 
+  if (
+    parsed.data.kind === "navigate" &&
+    parsed.data.targetNodeId &&
+    parsed.data.targetNodeId === parsed.data.nodeId
+  ) {
+    return actionError("Button o'zini o'ziga ulay olmaydi. Boshqa target node tanlang.");
+  }
+
   if (parsed.data.kind === "url" && !parsed.data.url) {
     return actionError("URL button uchun havola kiriting.");
   }
@@ -131,6 +141,30 @@ export async function saveButtonAction(
     return actionSuccess("Button saqlandi.");
   } catch (error) {
     return actionError(error instanceof Error ? error.message : "Button saqlanmadi");
+  }
+}
+
+export async function deleteButtonAction(
+  input: unknown,
+): Promise<ActionResult<undefined>> {
+  const parsed = deleteButtonSchema.safeParse(input);
+
+  if (!parsed.success) {
+    return actionError("Button ma'lumotlari noto'g'ri", parsed.error.flatten().fieldErrors);
+  }
+
+  const context = await requireWorkspaceContext();
+
+  try {
+    await deleteButtonRecord({
+      workspaceId: context.workspace.id,
+      buttonId: parsed.data.buttonId,
+    });
+
+    revalidateBuilderRoutes();
+    return actionSuccess("Button o'chirildi.");
+  } catch (error) {
+    return actionError(error instanceof Error ? error.message : "Button o'chirilmadi");
   }
 }
 

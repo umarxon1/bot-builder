@@ -38,7 +38,7 @@ export async function getPublishedFlowTree(botId: string) {
 
   const { data: nodesData } = await admin
     .from("flow_nodes")
-    .select("*, buttons:flow_buttons(*)")
+    .select("*, buttons:flow_buttons!flow_buttons_node_id_fkey(*)")
     .eq("flow_id", bot.published_flow_id)
     .eq("workspace_id", bot.workspace_id)
     .order("order_index", { ascending: true });
