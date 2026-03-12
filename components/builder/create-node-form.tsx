@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -21,6 +22,7 @@ export function CreateNodeForm({
   nodeOptions: Array<{ id: string; title: string }>;
 }) {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -54,6 +56,7 @@ export function CreateNodeForm({
       }
 
       toast.success(result.message ?? "Node yaratildi.");
+      router.refresh();
       reset({
         flowId,
         title: "",

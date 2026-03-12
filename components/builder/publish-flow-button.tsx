@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
 
@@ -14,6 +15,7 @@ export function PublishFlowButton({
   botId: string;
 }) {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   return (
     <Button
@@ -28,6 +30,7 @@ export function PublishFlowButton({
           }
 
           toast.success(result.message ?? "Flow chop etildi.");
+          router.refresh();
         })
       }
       disabled={isPending}

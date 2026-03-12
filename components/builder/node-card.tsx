@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -23,6 +24,7 @@ function ButtonCreateForm({
   nodeOptions: Array<{ id: string; title: string }>;
 }) {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
   const { register, handleSubmit, watch, reset } = useForm<ButtonInput>({
     defaultValues: {
       nodeId,
@@ -44,6 +46,7 @@ function ButtonCreateForm({
       }
 
       toast.success(result.message ?? "Button saqlandi.");
+      router.refresh();
       reset({ nodeId, kind: "navigate", label: "", targetNodeId: "", url: "" });
     });
   });
@@ -99,6 +102,7 @@ export function NodeCard({
   nodeOptions: Array<{ id: string; title: string }>;
 }) {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -132,6 +136,7 @@ export function NodeCard({
       }
 
       toast.success(result.message ?? "Node yangilandi.");
+      router.refresh();
     });
   });
 
@@ -239,7 +244,13 @@ export function NodeCard({
             <p className="text-sm text-slate-500">{"Buttonlar hali qo'shilmagan."}</p>
           )}
         </div>
-        {node.type === "menu" ? <ButtonCreateForm nodeId={node.id} nodeOptions={nodeOptions} /> : null}
+        {nodeType === "menu" ? (
+          <ButtonCreateForm nodeId={node.id} nodeOptions={nodeOptions} />
+        ) : (
+          <p className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+            {"Button qo'shish uchun avval `Node turi` ni `Menu` ga o'zgartirib, `Node yangilash` ni bosing."}
+          </p>
+        )}
       </div>
     </Card>
   );
