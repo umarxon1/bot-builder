@@ -10,7 +10,8 @@ export async function GET(request: Request) {
   if (!code) {
     return NextResponse.redirect(new URL("/login?message=Auth callback xatosi", request.url));
   }
-
+ 
+  
   const supabase = await createServerSupabaseClient();
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
