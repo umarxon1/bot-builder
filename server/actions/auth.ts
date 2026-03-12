@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 
-import { getServerEnv } from "@/lib/env.server";
+import { getAuthServerEnv } from "@/lib/env.server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
   forgotPasswordSchema,
@@ -40,6 +40,7 @@ function formatSetupError(error: unknown) {
 
   if (
     error.message.includes("Missing or invalid server environment variables") ||
+    error.message.includes("Missing or invalid auth server environment variables") ||
     error.message.includes("Missing or invalid public environment variables")
   ) {
     return fallback;
@@ -133,7 +134,7 @@ export async function signupAction(
   let supabase;
 
   try {
-    env = getServerEnv();
+    env = getAuthServerEnv();
     supabase = await createServerSupabaseClient();
   } catch (error) {
     return actionError(formatSetupError(error));
@@ -201,7 +202,7 @@ export async function requestPasswordResetAction(
   let supabase;
 
   try {
-    env = getServerEnv();
+    env = getAuthServerEnv();
     supabase = await createServerSupabaseClient();
   } catch (error) {
     return actionError(formatSetupError(error));

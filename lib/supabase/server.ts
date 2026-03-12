@@ -3,11 +3,11 @@ import "server-only";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-import { getServerEnv } from "@/lib/env.server";
+import { getAuthServerEnv } from "@/lib/env.server";
 import type { Database } from "@/types/database";
 
 export async function createServerSupabaseClient() {
-  const env = getServerEnv();
+  const env = getAuthServerEnv();
   const cookieStore = await cookies();
 
   return createServerClient<Database>(

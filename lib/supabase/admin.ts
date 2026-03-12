@@ -2,14 +2,14 @@ import "server-only";
 
 import { createClient } from "@supabase/supabase-js";
 
-import { getServerEnv } from "@/lib/env.server";
+import { getAuthServerEnv } from "@/lib/env.server";
 import type { Database } from "@/types/database";
 
 let adminClient: ReturnType<typeof createClient<Database>> | undefined;
 
 export function createAdminSupabaseClient() {
   if (!adminClient) {
-    const env = getServerEnv();
+    const env = getAuthServerEnv();
 
     adminClient = createClient<Database>(
       env.NEXT_PUBLIC_SUPABASE_URL,
