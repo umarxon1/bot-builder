@@ -36,23 +36,6 @@ begin
 end;
 $$;
 
-create or replace function public.is_workspace_member(target_workspace_id uuid)
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select exists (
-    select 1
-    from public.workspace_members
-    where workspace_id = target_workspace_id
-      and user_id = auth.uid()
-  );
-$$;
-
-grant execute on function public.is_workspace_member(uuid) to authenticated;
-
 create table public.workspaces (
   id uuid primary key default gen_random_uuid(),
   name text not null,
@@ -79,6 +62,23 @@ create table public.workspace_members (
   created_at timestamptz not null default timezone('utc', now()),
   unique (workspace_id, user_id)
 );
+
+create or replace function public.is_workspace_member(target_workspace_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.workspace_members
+    where workspace_id = target_workspace_id
+      and user_id = auth.uid()
+  );
+$$;
+
+grant execute on function public.is_workspace_member(uuid) to authenticated;
 
 create table public.bots (
   id uuid primary key default gen_random_uuid(),
